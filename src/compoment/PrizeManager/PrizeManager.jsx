@@ -9,8 +9,13 @@ const API_BASE =
 export default function PrizeManager({ prizes, setPrizes }) {
   const [label, setLabel] = useState("");
   const [weight, setWeight] = useState(1);
-  const [dirty, setDirty] = useState(false);
+  const [quantity, setQuantity] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editWeight, setEditWeight] = useState(1);
+  const [editQuantity, setEditQuantity] = useState(0);
 
   // Tải danh sách (GET)
   useEffect(() => {
@@ -25,82 +30,99 @@ export default function PrizeManager({ prizes, setPrizes }) {
       }
     };
     load();
-  }, []);
+  }, [setPrizes]);
 
-  const addPrize = () => {
+  // Thêm và lưu ngay
+  const addPrize = async () => {
     if (!label.trim()) return;
-    setPrizes([...prizes, { label: label.trim(), weight: Number(weight) || 1 }]);
+    const newPrizes = [...prizes, { label: label.trim(), weight: Number(weight) || 1,quantity: Number(quantity) || 0, }];
+    setPrizes(newPrizes);
     setLabel("");
     setWeight(1);
-    setDirty(true);
-  };
+    setQuantity(0);
 
-  const removePrize = (index) => {
-    setPrizes(prizes.filter((_, i) => i !== index));
-    setDirty(true);
-  };
-
-  const savePrizes = async () => {
     try {
-      await axios.post(`${API_BASE}/api/prizes`, prizes);
-      setDirty(false);
+      await axios.post(`${API_BASE}/api/prizes`, newPrizes);
+      console.log("✅ Đã lưu phần thưởng mới");
     } catch (e) {
       console.error("❌ Error saving prizes:", e.response?.data || e);
       alert("Lưu thất bại: " + (e.response?.data?.message || e.message));
     }
   };
 
-  if (loading) return <p className="text-sm text-gray-500">Đang tải danh sách…</p>;
+  // Xóa và lưu ngay
+  const removePrize = async (index) => {
+    const newPrizes = prizes.filter((_, i) => i !== index);
+    setPrizes(newPrizes);
 
+    try {
+      await axios.post(`${API_BASE}/api/prizes`, newPrizes);
+      console.log("✅ Đã lưu sau khi xóa");
+    } catch (e) {
+      console.error("❌ Error saving prizes:", e.response?.data || e);
+      alert("Lưu thất bại: " + (e.response?.data?.message || e.message));
+    }
+  };
+
+  const startEdit = (index) => {
+    setEditingIndex(index);
+    setEditLabel(prizes[index].label);
+    setEditWeight(prizes[index].weight);
+    setEditQuantity(prizes[index].quantity);
+  };
+
+  // Lưu sửa
+  const saveEdit = async (index) => {
+    const newPrizes = prizes.map((p, i) =>
+      i === index ? { label: editLabel.trim(), weight: Number(editWeight) || 1, quantity: Number(editQuantity) || 0 } : p
+    );
+    setPrizes(newPrizes);
+    setEditingIndex(null);
+    try {
+      await axios.post(`${API_BASE}/api/prizes`, newPrizes);
+    } catch (e) {
+      console.error("❌ Error saving prizes:", e.response?.data || e);
+    }
+  };
+
+  if (loading) return <p className="text-sm text-gray-500">Đang tải danh sách…</p>;
+  const totalWeight = prizes.reduce((sum, p) => sum + (p.weight || 0), 0);
   return (
     <div>
       <h2 className="text-lg font-bold mb-2">🎁 Phần thưởng</h2>
 
+      {/* Form thêm */}
       <div className="flex space-x-2 mb-2">
-        <input
-          type="text"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="Tên phần thưởng"
-          className="border p-1 flex-1"
-        />
-        <input
-          type="number"
-          value={weight}
-          min={1}
-          onChange={(e) => setWeight(e.target.value)}
-          placeholder="Tỷ lệ"
-          className="border p-1 w-24"
-        />
-        <button onClick={addPrize} className="px-3 bg-blue-600 text-white rounded">
-          ➕ Thêm
-        </button>
+        <input type="text" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Tên phần thưởng" className="border p-1 flex-1" />
+        <input type="number" value={weight} min={1} onChange={(e) => setWeight(e.target.value)} placeholder="Tỷ lệ" className="border p-1 w-24" />
+        <input type="number" value={quantity} min={0} onChange={(e) => setQuantity(e.target.value)} placeholder="Số lượt" className="border p-1 w-20" />
+        <button onClick={addPrize} className="px-3 bg-blue-600 text-white rounded">➕ Thêm</button>
       </div>
 
-      <div className="mb-3">
-        <button
-          onClick={savePrizes}
-          disabled={!dirty}
-          className={`px-3 py-1 rounded ${
-            dirty ? "bg-green-600 text-white" : "bg-gray-300 text-gray-600"
-          }`}
-        >
-          💾 Lưu thay đổi
-        </button>
-      </div>
-
+      {/* Danh sách */}
       <ul className="max-h-80 overflow-auto pr-1">
         {prizes.map((p, i) => (
-          <li
-            key={`${p.label}-${i}`}
-            className="flex justify-between items-center mb-1 bg-gray-50 px-2 py-1 rounded"
-          >
-            <span>
-              {p.label} <span className="text-gray-500">(x{p.weight})</span>
-            </span>
-            <button onClick={() => removePrize(i)} className="text-red-500 hover:underline">
-              Xóa
-            </button>
+          
+          <li key={`${p.label}-${i}`} className="flex justify-between items-center mb-1 bg-gray-50 px-2 py-1 rounded">
+            {editingIndex === i ? (
+              <div className="flex space-x-2 flex-1">
+                <input type="text" value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="border p-1 flex-1" />
+                <input type="number" value={editWeight} min={1} onChange={(e) => setEditWeight(e.target.value)} className="border p-1 w-20" />
+                <input type="number" value={editQuantity} min={0} onChange={(e) => setEditQuantity(e.target.value)} className="border p-1 w-20" />
+                <button onClick={() => saveEdit(i)} className="px-2 bg-green-500 text-white rounded">💾 Lưu</button>
+                <button onClick={() => setEditingIndex(null)} className="px-2 bg-gray-400 text-white rounded">Hủy</button>
+              </div>
+            ) : (
+              <>
+                <span>{p.label} <span className="text-gray-500">(x{p.weight}, còn {p.quantity})
+                  <strong>{totalWeight > 0 ? ((p.weight / totalWeight) * 100).toFixed(2) : 0}%</strong>
+                </span></span>
+                <div className="space-x-2">
+                  <button onClick={() => startEdit(i)} className="text-blue-500 hover:underline">Sửa</button>
+                  <button onClick={() => removePrize(i)} className="text-red-500 hover:underline">Xóa</button>
+                </div>
+              </>
+            )}
           </li>
         ))}
         {prizes.length === 0 && (

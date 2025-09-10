@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import LuckyWheel from "./compoment/LuckyWheel";
 import WheelControl from "./compoment/WheelControl";
-
+import "./App.css";
 const API_BASE =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE) ||
   (typeof process !== "undefined" && process.env?.REACT_APP_API_BASE) ||
@@ -21,8 +21,8 @@ function App() {
   useEffect(() => { reloadPrizes(); }, []);
 
   return (
-    <div className="flex h-screen">
-      <div className="w-2/5 bg-gray-100">
+    <div className="container">
+      <div className="control">
         <WheelControl
           prizes={prizes}
           setPrizes={setPrizes}
@@ -30,10 +30,11 @@ function App() {
           setSettings={setSettings}
         />
       </div>
-      <div className="w-3/5 flex items-center justify-center">
+      <div className="wheel">
         <LuckyWheel
           prizes={prizes}
           settings={settings}
+          setPrizes={setPrizes}
           onStockChanged={reloadPrizes}
         />
       </div>

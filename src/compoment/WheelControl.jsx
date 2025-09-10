@@ -2,50 +2,56 @@ import { useState } from "react";
 import PrizeManager from "./PrizeManager/PrizeManager";
 import GeneralSettings from "./GeneralSettings/GeneralSettings";
 import SpinViewer from "./SpinViewer/SpinViewer";
-
+import "./Control/WheelControl.css";
+import SpinLimitControl from "./SpinLimitControl/SpinLimitControl";
 function WheelControl({ prizes, setPrizes, settings, setSettings }) {
-  const [activeTab, setActiveTab] = useState("prizes"); // 'prizes' | 'settings' | 'spins'
+  const [activeTab, setActiveTab] = useState("prizes");
 
   return (
-    <div className="p-4 border-r h-full">
-      {/* Tabbar */}
-      <div className="flex space-x-2 mb-4">
+    <div className="wheel-control">
+      {/* Bên trái: Tabbar */}
+      <div className="tabbar">
+        <h3>Cấu hình vòng quay</h3>
         <button
           onClick={() => setActiveTab("prizes")}
-          className={`px-3 py-1 rounded ${
-            activeTab === "prizes" ? "bg-blue-500 text-white" : "bg-gray-200"
-          }`}
+          className={activeTab === "prizes" ? "active" : ""}
         >
-          🎁 Phần thưởng
+          🎁 Chỉnh sửa quà
+        </button>
+        <button
+          onClick={() => setActiveTab("limit")}
+          className={activeTab === "limit" ? "active" : ""}
+        >
+          🎯 Lượt quay
         </button>
         <button
           onClick={() => setActiveTab("settings")}
-          className={`px-3 py-1 rounded ${
-            activeTab === "settings" ? "bg-blue-500 text-white" : "bg-gray-200"
-          }`}
+          className={activeTab === "settings" ? "active" : ""}
         >
           ⚙️ Cài đặt chung
         </button>
         <button
           onClick={() => setActiveTab("spins")}
-          className={`px-3 py-1 rounded ${
-            activeTab === "spins" ? "bg-blue-500 text-white" : "bg-gray-200"
-          }`}
+          className={activeTab === "spins" ? "active" : ""}
         >
           📜 Xem trúng giải
         </button>
       </div>
 
-      {/* Nội dung theo tab */}
-      {activeTab === "prizes" && (
-        <PrizeManager prizes={prizes} setPrizes={setPrizes} />
-      )}
-      {activeTab === "settings" && (
-        <GeneralSettings settings={settings} setSettings={setSettings} />
-      )}
-      {activeTab === "spins" && <SpinViewer />}
+      {/* Bên phải: Nội dung tab */}
+      <div className="tab-content">
+        {activeTab === "prizes" && (
+          <PrizeManager prizes={prizes} setPrizes={setPrizes} />
+        )}
+        {activeTab === "limit" && <SpinLimitControl />}
+        {activeTab === "settings" && (
+          <GeneralSettings settings={settings} setSettings={setSettings} />
+        )}
+        {activeTab === "spins" && <SpinViewer />}
+      </div>
     </div>
   );
 }
+
 
 export default WheelControl;

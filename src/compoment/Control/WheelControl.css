@@ -1,0 +1,35 @@
+.wheel-control {
+  display: flex;
+  height: 100%;
+}
+
+/* Bên trái */
+.tabbar {
+  width: 40%;
+  padding: 16px;
+  border-right: 2px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tabbar button {
+  padding: 10px 16px;
+  border-radius: 30px;
+  border: none;
+  background: #e5e7eb; /* xám nhạt */
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tabbar button.active {
+  background: #8DF498; /* xanh */
+  color: #006C04;
+}
+
+/* Bên phải */
+.tab-content {
+  width: 60%;
+  padding: 16px;
+  overflow-y: auto;
+}
