@@ -65,8 +65,8 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
       ctx.translate(center, center);
       ctx.rotate(i * sliceAngle + sliceAngle / 2 + angle);
       ctx.textAlign = "right";
-      ctx.fillStyle = i % 2 === 0 ? "#000000ff" : "#04d401ff";
-      ctx.font = "bold 16px sans-serif";
+      ctx.fillStyle = i % 2 === 0 ? "#000000ff" : "#04de00ff";
+      ctx.font = "bold 24px Serif";
       const maxTextWidth = 100; // 🔹 Giới hạn chiều rộng hiển thị
       const text = truncateText(ctx, prizes[i].label, maxTextWidth);
       ctx.fillText(text, radius - 10, 10);
