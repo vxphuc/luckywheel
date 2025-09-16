@@ -22,17 +22,17 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
   const [winner, setWinner] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
 
-  const size = 420;                  // Kích thước canvas
+  const size = 520;                  // Kích thước canvas
   const center = size / 2;           // Tâm canvas (giữa)
-  const radius = center - 15;        // Bán kính (chừa khoảng viền)
+  const radius = center - 35;        // Bán kính (chừa khoảng viền)
   const API_BASE = "http://localhost:5000";
-
+  
   // Nếu chọn màu random thì tạo màu theo số lượng prizes
   const colors = settings.randomColors
     ? prizes.map(
         () => `hsl(${Math.floor(Math.random() * 360)},70%,60%)`
       )
-    : ["#beeabdff", "#D9D9D9"];
+    : ["#FF0000", "#ffffffff"];
 
   // Vẽ vòng quay
   useEffect(() => {
@@ -55,9 +55,14 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
       ctx.fillStyle = colors[i % colors.length];
       ctx.fill();
 
+      const aa = ctx.createRadialGradient(center, center, radius, center, center, radius - 30);
+      aa.addColorStop(0, "#FFF8DC");   // highlight sáng
+      aa.addColorStop(0.3, "#FFD700"); // vàng sáng
+      aa.addColorStop(0.7, "#FFF8DC"); // cam vàng
+      aa.addColorStop(1, "#FFA500");   // nâu vàng đậm
       // 🔹 Chỉ stroke mảnh cho đường chia lát
       ctx.lineWidth = 3;
-      ctx.strokeStyle = "#22B800";
+      ctx.strokeStyle = aa;
       ctx.stroke();
 
       // Vẽ chữ
@@ -65,27 +70,75 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
       ctx.translate(center, center);
       ctx.rotate(i * sliceAngle + sliceAngle / 2 + angle);
       ctx.textAlign = "right";
-      ctx.fillStyle = i % 2 === 0 ? "#000000ff" : "#04de00ff";
+      ctx.fillStyle = i % 2 === 0 ? "#ffffffff" : "#FF0000";
       ctx.font = "bold 24px Serif";
       const maxTextWidth = 100; // 🔹 Giới hạn chiều rộng hiển thị
       const text = truncateText(ctx, prizes[i].label, maxTextWidth);
       ctx.fillText(text, radius - 10, 10);
       ctx.restore();
     }
-    const gradient = ctx.createLinearGradient(0, 0, 0, size);
-    gradient.addColorStop(0, "#006C04");   // trên cùng
-    gradient.addColorStop(1, "#7BFF89");   // dưới cùng
+    const redGradient = ctx.createRadialGradient(center, center, radius - 30, center, center, radius + 20);
+    redGradient.addColorStop(0, "#FF4D4D");  // đỏ sáng (gần highlight)
+    redGradient.addColorStop(0.5, "#CC0000"); // đỏ chuẩn
+    redGradient.addColorStop(1, "#660000");
+    
+    const goldGradient = ctx.createLinearGradient(0, 0, 0, size);
+    goldGradient.addColorStop(0, "#FFF8DC");   // highlight sáng
+    goldGradient.addColorStop(0.3, "#FFD700"); // vàng sáng
+    goldGradient.addColorStop(0.7, "#FFF8DC"); // cam vàng
+    goldGradient.addColorStop(1, "#FFA500");   // nâu vàng đậm
+    
+    ctx.beginPath();
+    ctx.arc(center, center, radius + 10, 0, 2 * Math.PI);
+    ctx.lineWidth = 20;              // viền dày hơn chút để thấy gradient rõ
+    ctx.strokeStyle = redGradient;     // áp gradient vào viền
+    ctx.stroke();
+
+    const dotCount = prizes.length * 2; // số chấm (gấp đôi số lát cho đều)
+    for (let i = 0; i < dotCount; i++) {
+      const angleDot = (2 * Math.PI / dotCount) * i + angle;
+      const dotRadius = radius + 10; // vị trí trên viền đỏ
+      const x = center + dotRadius * Math.cos(angleDot);
+      const y = center + dotRadius * Math.sin(angleDot);
+
+      // Gradient highlight cho từng chấm
+      const dotGradient = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, 6);
+      dotGradient.addColorStop(0, "#FFFFFF");   // highlight sáng
+      dotGradient.addColorStop(0.3, "#FFD700"); // vàng nhạt bóng
+      dotGradient.addColorStop(1, "#B22222");   // đỏ đậm hòa vào viền
+
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, 2 * Math.PI); // bán kính chấm = 6px
+      ctx.fillStyle = dotGradient;
+      ctx.fill();
+    }
 
     ctx.beginPath();
-    ctx.arc(center, center, radius, 0, 2 * Math.PI);
-    ctx.lineWidth = 6;              // viền dày hơn chút để thấy gradient rõ
-    ctx.strokeStyle = gradient;     // áp gradient vào viền
+    ctx.arc(center, center, radius , 0, 2 * Math.PI); // nhỏ hơn bán kính của viền đỏ
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = goldGradient; // vàng sáng hoặc có thể dùng gradient sáng
     ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(center, center, radius + 24, 0, 2 * Math.PI);
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = goldGradient;
+    ctx.stroke();
+    
+    // 🔹 Viền trắng mỏng ngoài cùng (phản chiếu ánh sáng)
+    ctx.beginPath();
+    ctx.arc(center, center, radius + 29.5, 0, 2 * Math.PI);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#9e8600ff";
+    ctx.stroke();
+    
     ctx.beginPath();
     ctx.moveTo(center - 13, 10);   // góc trái mũi tên
     ctx.lineTo(center + 13, 10);   // góc phải mũi tên
     ctx.lineTo(center, 40);        // đỉnh mũi tên (chỉ xuống)
     ctx.closePath();
+
+    
 
     const arrowGradient = ctx.createLinearGradient(center - 15, 0, center + 15, 40);
     arrowGradient.addColorStop(0, "#FF0000");   // đỏ đậm
@@ -184,7 +237,9 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
   return (
   <div className="main container">
     <h2 className="text-xl font-bold mb-2">🎡 Vòng quay may mắn</h2>
-    <canvas ref={canvasRef} width={size} height={size} className="mx-auto" />
+    <div className="wheel-border">
+      <canvas ref={canvasRef} width={size} height={size} className="mx-auto" />
+    </div>
     <div className="mt-4">
       <button
         onClick={spin}
