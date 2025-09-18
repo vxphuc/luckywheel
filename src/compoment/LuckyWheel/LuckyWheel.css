@@ -1,12 +1,13 @@
 .main {
-    width: 100%;
-    min-height: 100vh;       /* ✅ cao tối thiểu bằng màn hình */
+    width: 80% !important;
+    min-height: auto;       /* ✅ cao tối thiểu bằng màn hình */
     display: flex;
     flex-direction: column;
     align-items: center;     /* ✅ căn giữa ngang */
-    background-image: url("../asset/vuong.png");
+    background-image: url("../asset/1920x1080.png");
     background-size: cover;
     background-position: center;
+    justify-content: center
 }
 
 .container {
@@ -77,4 +78,10 @@
 @keyframes zoomIn {
   from { transform: scale(0.5); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
+}
+@media (max-width: 768px) {
+  .main {
+    width: 100% !important;
+    background-image: url("../asset/2400x1080.png");
+  }
 }
