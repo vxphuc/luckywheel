@@ -25,14 +25,17 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
   const size = window.innerWidth < 768 ? 350 : 520;// Kích thước canvas
   const center = size / 2;           // Tâm canvas (giữa)
   const radius = center - 35;        // Bán kính (chừa khoảng viền)
-  const API_BASE = "http://localhost:5000";
+  const API_BASE =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_BASE) ||
+  (typeof process !== "undefined" && process.env && process.env.REACT_APP_API_BASE) ||
+  "https://luckywheel-backend-acgn.onrender.com";
   
   // Nếu chọn màu random thì tạo màu theo số lượng prizes
   const colors = settings.randomColors
     ? prizes.map(
         () => `hsl(${Math.floor(Math.random() * 360)},70%,60%)`
       )
-    : ["#FF0000", "#ffffffff"];
+    : ["#078832ff", "#ffffffff"];
 
   // Vẽ vòng quay
   useEffect(() => {
@@ -42,6 +45,23 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
     ctx.clearRect(0, 0, size, size);
 
     const sliceAngle = (2 * Math.PI) / prizes.length;
+    function getImageSize(size) {
+      let scale, imgW, imgH;
+
+      if (window.innerWidth < 768) {
+        // 📱 Mobile
+        scale = size / 555;
+        imgW = 145 * scale;
+        imgH = 55 * scale;
+      } else {
+        // 💻 Desktop
+        scale = size / 520;
+        imgW = 120 * scale;
+        imgH = 60 * scale;
+      }
+
+      return { imgW, imgH };
+    }
     for (let i = 0; i < prizes.length; i++) {
       ctx.beginPath();
       ctx.moveTo(center, center);
@@ -64,16 +84,14 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
           ? prizes[i].image
           : `${API_BASE}${prizes[i].image}`;
         img.onload = () => {
-          const scale = size / 520;
-          const imgW = 90 * scale;
-          const imgH = 40 * scale;
+          const { imgW, imgH } = getImageSize(size);
 
           ctx.save();
           ctx.translate(center, center);
           // Xoay tới lát cắt
           ctx.rotate(i * sliceAngle + sliceAngle / 2 + angle);
           // Đẩy ra ngoài rìa lát
-          ctx.translate(radius - imgW + 35, 0);
+          ctx.translate(radius - imgW + 60, 0);
           // Xoay ngang lại hình ảnh 90 độ
           ctx.rotate(Math.PI / 2);
 
@@ -288,7 +306,7 @@ function LuckyWheel({ prizes, settings, setPrizes }) {
 }, [center, spin]);
   return (
   <div className="main container">
-    <h2 className="text-xl font-bold mb-2">🎡 Vòng quay may mắn</h2>
+    {/* <h2 className="text-xl font-bold mb-2">🎡 Vòng quay may mắn</h2> */}
     <div className="wheel-border">
       <canvas ref={canvasRef} width={size} height={size} className="mx-auto" />
     </div>
